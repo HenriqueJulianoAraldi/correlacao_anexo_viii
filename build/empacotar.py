@@ -10,31 +10,17 @@ Uso:
 
 from __future__ import annotations
 
-import re
-import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 WEB = RAIZ / "web"
 SAIDA = RAIZ / "dist" / "fluxo-anexo-viii.html"
 
-PREAMBULO = re.compile(
-    r"\(async \(\) => \{\s*"
-    r"const resposta = await fetch\('data/anexo8\.json'\);.*?"
-    r"const D = await resposta\.json\(\);",
-    re.S,
-)
-
-
 def main() -> None:
     html = (WEB / "index.html").read_text(encoding="utf-8")
     css = (WEB / "app.css").read_text(encoding="utf-8")
     js = (WEB / "app.js").read_text(encoding="utf-8")
     dados = (WEB / "data" / "anexo8.json").read_text(encoding="utf-8")
-
-    js, trocas = PREAMBULO.subn("(async () => {\n  const D = window.__ANEXO8__;", js)
-    if trocas != 1:
-        sys.exit("app.js mudou: o trecho que busca data/anexo8.json não foi encontrado.")
 
     # O JSON entra dentro de <script>, então qualquer '</' precisa ser escapado.
     dados = dados.replace("</", "<\\/")

@@ -75,15 +75,18 @@ main{padding-block:18px 48px}
 @media (max-width:680px){.version-note{align-items:flex-start;flex-direction:column;gap:5px}}
 
 /* ---------- fluxo ---------- */
-.split{display:grid;grid-template-columns:302px minmax(0,1fr);gap:18px;align-items:start}
+.query-toolbar{margin-bottom:14px;padding:10px 12px 12px;background:var(--surface);border:1px solid var(--line);
+  border-radius:7px;box-shadow:var(--shadow)}
+.toolbar-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:7px}
+.toolbar-head strong{font-family:Archivo,sans-serif;font-size:12.5px;color:var(--ink)}
+.toolbar-grid{display:grid;grid-template-columns:minmax(260px,1.45fr) repeat(3,minmax(155px,1fr));gap:10px;align-items:end}
+.split{display:grid;grid-template-columns:330px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:1120px){.toolbar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:920px){.split{grid-template-columns:1fr}}
 .rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdr,150px) + 14px);background:var(--surface);
   border:1px solid var(--line);border-radius:7px;box-shadow:var(--shadow);overflow:hidden;
   display:flex;flex-direction:column;max-height:calc(100vh - var(--hdr,150px) - 46px)}
 @media (max-width:920px){.rail{position:static;max-height:none}}
-.railtop{padding:13px;border-bottom:1px solid var(--line);background:var(--surface2)}
-.filter-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;
-  font-family:Archivo,sans-serif;font-size:13px;font-weight:700;color:var(--ink)}
 .searchbox{position:relative}
 .searchbox svg{position:absolute;left:10px;top:50%;width:16px;height:16px;transform:translateY(-50%);
   fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;pointer-events:none}
@@ -95,24 +98,19 @@ main{padding-block:18px 48px}
 .searchbox .search{padding-left:34px;padding-right:36px}
 .searchbox input:not(:placeholder-shown)+kbd,.searchbox:focus-within kbd{display:none}
 .search::placeholder{color:var(--muted)}
-.search-help{margin:5px 1px 11px;color:var(--muted);font-size:11.5px;line-height:1.4}
-.filter-grid{display:grid;gap:8px}
 .field{display:grid;gap:4px}
-.field>span,.location-filter legend{color:var(--ink2);font-size:11.5px;font-weight:600}
-.location-filter{min-width:0;margin:11px 0 0;padding:0;border:0}
-.location-filter legend{padding:0}
-.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
-.chip{border:1px solid var(--line2);background:var(--surface);border-radius:20px;padding:3px 9px;
-  font-size:12px;cursor:pointer;color:var(--ink2);line-height:1.45}
-.chip:hover{border-color:var(--n3)}
-.chip[aria-pressed="true"]{background:var(--n3b);border-color:var(--n3);color:var(--n3);font-weight:600}
+.field>span{color:var(--ink2);font-size:11px;font-weight:600;white-space:nowrap}
 .count{padding:8px 12px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line);
   background:var(--surface2);display:flex;justify-content:space-between;gap:8px}
 .count strong{color:var(--ink2);font-family:"IBM Plex Mono",monospace;font-size:11.5px}
 .clearbtn{background:none;border:0;padding:0;cursor:pointer;color:var(--n1);font:600 11.5px "IBM Plex Sans",sans-serif;
   text-decoration:underline}
-.list{overflow-y:auto;flex:1;min-height:0}
-@media (max-width:920px){.list{max-height:340px}}
+.list{overflow-y:auto;flex:1;min-height:0;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.list::-webkit-scrollbar{width:8px}
+.list::-webkit-scrollbar-track{background:transparent}
+.list::-webkit-scrollbar-thumb{background:var(--line2);border:2px solid var(--surface);border-radius:999px}
+.list::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+@media (max-width:920px){.list{max-height:440px}}
 .li{width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);
   padding:10px 12px;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:3px 9px;align-items:baseline}
 .li:hover{background:var(--surface2)}
@@ -318,6 +316,8 @@ table.data td.num{text-align:right;font-variant-numeric:tabular-nums;white-space
   box-shadow:0 8px 28px rgba(0,0,0,.22);font-size:12.5px;font-weight:600}
 
 @media (max-width:760px){
+  .query-toolbar{padding:11px}
+  .toolbar-grid{grid-template-columns:1fr}
   .ref-intro{align-items:stretch;flex-direction:column;gap:11px}
   .ref-search{min-width:0}
   .source-card dl>div{grid-template-columns:1fr;gap:3px}

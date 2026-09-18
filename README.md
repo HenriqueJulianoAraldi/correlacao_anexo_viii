@@ -20,8 +20,49 @@ python3 -m http.server 8000
 # http://localhost:8000
 ```
 
-Para publicar, sirva a pasta `web/` em qualquer host estático. No GitHub Pages, aponte a
-origem para a branch e a pasta `web/`.
+Se não houver onde hospedar, use a versão de arquivo único em `dist/fluxo-anexo-viii.html`:
+ela tem CSS, script e dados embutidos e abre com duplo clique, direto do disco ou de uma
+pasta de rede, sem servidor nenhum.
+
+## Publicar
+
+### GitHub Pages
+
+O workflow `.github/workflows/pages.yml` publica a pasta `web/` a cada push na `main`. Para
+ligá-lo, vá em **Settings → Pages** e escolha **Source: GitHub Actions** — uma vez só. O
+modo "deploy from a branch" não serve aqui: ele só aceita a raiz do repositório ou `/docs`,
+e é por isso que a publicação passa pelo workflow.
+
+Num repositório privado, o Pages exige plano pago. No plano gratuito, ou o repositório vira
+público, ou a publicação vai para outro host.
+
+### Outro host estático
+
+Netlify, Vercel e Cloudflare Pages funcionam com repositório privado no plano gratuito.
+Conecte o repositório e configure:
+
+| Campo | Valor |
+| --- | --- |
+| Comando de build | *(vazio)* |
+| Diretório publicado | `web` |
+
+Não há dependências nem etapa de build: o conteúdo de `web/` é o site.
+
+### Rede interna
+
+A pasta `web/` servida por qualquer coisa que fale HTTP resolve — `python3 -m http.server`,
+nginx, IIS, um bucket S3 com acesso restrito. Como é tudo estático, não há backend para
+manter nem dado que saia do navegador de quem consulta.
+
+### Arquivo único
+
+```bash
+cd build && python3 empacotar.py
+```
+
+Escreve `dist/fluxo-anexo-viii.html` com tudo embutido. É a via mais curta para colocar a
+consulta na mão do atendimento: anexar o arquivo, pôr numa pasta compartilhada ou na
+intranet. Regenere depois de cada atualização dos dados.
 
 ## Estrutura
 
@@ -31,8 +72,11 @@ web/                      a página; é só isso que precisa ir para produção
   app.css
   app.js
   data/anexo8.json        dados gerados, versionados
+dist/
+  fluxo-anexo-viii.html   a mesma página em arquivo único, para uso sem servidor
 build/
   gerar.py                lê as planilhas oficiais e escreve web/data/anexo8.json
+  empacotar.py            gera dist/fluxo-anexo-viii.html a partir de web/
   fontes/                 planilhas oficiais, versionadas
   referencias/
     grupos-lc116.json     os 41 cabeçalhos da lista de serviços
@@ -47,6 +91,8 @@ pip install -r requirements.txt
 cd build
 python3 gerar.py --validar
 ```
+
+Depois, se usar a versão de arquivo único, rode `python3 empacotar.py`.
 
 O gerador localiza as planilhas por padrão de nome e usa a de versão mais alta, então basta
 acrescentar a nova sem apagar a antiga — o `git diff` de `web/data/anexo8.json` passa a

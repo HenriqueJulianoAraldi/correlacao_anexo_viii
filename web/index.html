@@ -47,30 +47,28 @@
       </div>
       <button type="button" class="note-link" id="open-sources">Ver fontes e ressalvas</button>
     </aside>
-    <div class="split">
-      <aside class="rail">
-        <div class="railtop">
-          <div class="filter-title">
-            <span>Localizar serviço</span>
-            <button class="clearbtn" id="clr" type="button" hidden>Limpar filtros</button>
-          </div>
-          <label class="sr-only" for="q">Buscar nas correlações</label>
+    <div class="query-toolbar" aria-label="Busca e filtros da consulta">
+      <div class="toolbar-head">
+        <strong>Localizar serviço</strong>
+        <button class="clearbtn" id="clr" type="button" hidden>Limpar busca e filtros</button>
+      </div>
+      <div class="toolbar-grid">
+        <label class="field field-search" for="q">
+          <span>Buscar em toda a correlação</span>
           <div class="searchbox">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
             <input id="q" class="search" type="search" placeholder="Serviço, NBS, indOp, cClassTrib, CST…" autocomplete="off" aria-describedby="search-help" aria-keyshortcuts="/">
             <kbd title="Atalho para buscar">/</kbd>
           </div>
-          <p class="search-help" id="search-help">Use palavras da descrição ou digite o código com ou sem pontuação.</p>
-
-          <div class="filter-grid">
-            <label class="field" for="gsel"><span>Grupo da LC 116</span><select id="gsel" class="search sel"></select></label>
-            <label class="field" for="ccsel"><span>Classificação tributária</span><select id="ccsel" class="search sel"></select></label>
-          </div>
-          <fieldset class="location-filter">
-            <legend>Local de incidência</legend>
-            <div class="chips" id="locchips"></div>
-          </fieldset>
-        </div>
+          <span class="sr-only" id="search-help">Use palavras da descrição ou digite o código com ou sem pontuação.</span>
+        </label>
+        <label class="field" for="gsel"><span>Grupo da LC 116</span><select id="gsel" class="search sel"></select></label>
+        <label class="field" for="ccsel"><span>Classificação tributária</span><select id="ccsel" class="search sel"></select></label>
+        <label class="field" for="locsel"><span>Local de incidência</span><select id="locsel" class="search sel"></select></label>
+      </div>
+    </div>
+    <div class="split">
+      <aside class="rail">
         <div class="count"><span>Resultados</span><strong id="cnt" aria-live="polite"></strong></div>
         <div class="list" id="list" role="list" tabindex="0" aria-label="Subitens da LC 116"></div>
       </aside>

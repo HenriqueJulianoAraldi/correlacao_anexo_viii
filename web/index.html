@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fluxo do Anexo VIII</title>
+<meta name="description" content="Consulta de correlação do Anexo VIII (IBS/CBS): subitem da LC 116 para NBS, indOp e cClassTrib.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 rx=%273%27 fill=%27%230F4C5C%27/%3E%3Cpath d=%27M4 4.5h3.2M4 8h3.2M4 11.5h3.2M7.2 4.5c2 0 2 3.5 4.8 3.5M7.2 11.5c2 0 2-3.5 4.8-3.5%27 stroke=%27%23fff%27 stroke-width=%271.2%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="topin">
+    <div class="brandrow">
+      <h1>Fluxo do Anexo VIII</h1>
+      <span class="ver">v1.01.00</span>
+      <span class="sub">Consulta de correlação para IBS e CBS — 208 subitens, 731 NBS, 268 rotas.</span>
+    </div>
+    <div class="legend">
+      <span class="t" style="--lc:var(--n1)"><b>Subitem LC 116</b><i>lista de serviços da LC 116/2003</i></span>
+      <span class="ar">→</span>
+      <span class="t" style="--lc:var(--n2)"><b>NBS</b><i>Nomenclatura Brasileira de Serviços</i></span>
+      <span class="ar">→</span>
+      <span class="t" style="--lc:var(--n3)"><b>indOp</b><i>código indicador de operação</i></span>
+      <span class="ar">→</span>
+      <span class="t" style="--lc:var(--n4)"><b>cClassTrib</b><i>código de classificação tributária do IBS e da CBS</i></span>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-tab="fluxo">Fluxo por subitem</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="ref">Tabelas de apoio</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <section id="p-fluxo">
+    <div class="split">
+      <aside class="rail">
+        <div class="railtop">
+          <input id="q" class="search" type="search" placeholder="Buscar subitem, NBS, indOp ou cClassTrib…" autocomplete="off">
+          <select id="gsel" class="search sel"></select>
+          <select id="ccsel" class="search sel"></select>
+          <div class="chips" id="locchips"></div>
+        </div>
+        <div class="count"><span id="cnt"></span><button class="clearbtn" id="clr" hidden>limpar</button></div>
+        <div class="list" id="list" role="listbox" tabindex="0" aria-label="Subitens da LC 116"></div>
+      </aside>
+      <div class="panel" id="detail"></div>
+    </div>
+  </section>
+
+  <section id="p-ref" hidden>
+    <div class="jump">
+      <a href="#s-ind">indOp e local de incidência</a>
+      <a href="#s-x">Regra do inciso X</a>
+      <a href="#s-cc">cClassTrib e CST</a>
+    </div>
+
+    <div class="sec" id="s-ind">
+      <h2>indOp e o local de incidência que cada um determina</h2>
+      <p class="cap">Tabela baseada no art. 11 da LC 214/2025. O mesmo indOp sempre aponta para o mesmo local.</p>
+      <div class="tblwrap"><table class="data" id="indtbl"></table></div>
+    </div>
+
+    <div class="sec" id="s-x">
+      <h2>Regra do inciso X — indOp do grupo 10</h2>
+      <p class="cap">A tabela de correlação sempre traz a variante de prestação onerosa com adquirente no país. As outras combinações trocam o código.</p>
+      <div class="mtx">
+        <table class="mx">
+          <thead><tr><th></th><th>Onerosa · adquirente no país</th><th>Onerosa · adquirente no exterior</th><th>Não onerosa</th></tr></thead>
+          <tbody>
+            <tr><th class="rowh">Família 01</th><td>100101</td><td>100102</td><td>100201</td></tr>
+            <tr><th class="rowh">Família 03</th><td>100301</td><td>100302</td><td>100401</td></tr>
+            <tr><th class="rowh">Família 05</th><td>100501</td><td>100502</td><td>100601</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sec" id="s-cc">
+      <h2>cClassTrib, com o CST e o tratamento de cada um</h2>
+      <p class="cap">O CST e o tratamento vêm da tabela oficial de classificação tributária do IBS e da CBS. A NFS-e exige os dois campos juntos.</p>
+      <div class="tblwrap"><table class="data" id="cctbl"></table></div>
+    </div>
+  </section>
+
+  <p class="foot" id="foot"></p>
+</div>
+</main>
+<script src="app.js" defer></script>
+</body>
+</html>

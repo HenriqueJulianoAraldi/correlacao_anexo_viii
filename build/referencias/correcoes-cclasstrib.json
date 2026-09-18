@@ -1,0 +1,9 @@
+{
+  "_fonte": "Correções de rótulo aplicadas na geração, com base na tabela oficial de classificação tributária do IBS e da CBS. A chave é o cClassTrib; 'nome' substitui o texto do Anexo VIII e 'nota' aparece no rodapé do nó no fluxo.",
+  "correcoes": {
+    "200042": {
+      "nome": "Fornecimento de serviço de gestão e exploração do desporto (art. 141. II)",
+      "nota": "Nome conforme a tabela oficial. O Anexo VIII traz “educação desportiva”, que é o nome do 200041."
+    }
+  }
+}

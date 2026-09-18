@@ -1,6 +1,27 @@
 // Consulta do Anexo VIII — página estática, sem dependências.
 // Os dados vêm de data/anexo8.json, gerado por ../build/gerar.py.
 (async () => {
+  const UI_VERSION = '2026-09-18.2';
+  const documentVersion = document.documentElement.dataset.uiVersion;
+
+  // Um HTML antigo em cache pode carregar o JavaScript novo e quebrar a tela.
+  // Nesse caso, força apenas uma recarga do documento com uma chave de versão.
+  if (documentVersion !== UI_VERSION) {
+    const freshUrl = new URL(window.location.href);
+    if (freshUrl.searchParams.get('_ui') !== UI_VERSION) {
+      freshUrl.searchParams.set('_ui', UI_VERSION);
+      window.location.replace(freshUrl.href);
+    }
+    return;
+  }
+
+  // Remove a chave técnica depois que a versão correta já foi carregada.
+  const loadedUrl = new URL(window.location.href);
+  if (loadedUrl.searchParams.get('_ui') === UI_VERSION) {
+    loadedUrl.searchParams.delete('_ui');
+    try { history.replaceState(null, '', loadedUrl.href); } catch (e) { }
+  }
+
   const $ = s => document.querySelector(s);
   const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
   const nf = n => n.toLocaleString('pt-BR');
@@ -128,15 +149,13 @@
   }
 
   /* ---------- rail ---------- */
-  function renderChips() {
-    const box = $('#locchips'); box.textContent = '';
+  function renderLocSel() {
+    const s = $('#locsel');
+    s.appendChild(new Option('Todos os locais', ''));
     LOC_ORDER.filter(l => l in D.locais).forEach(l => {
-      const b = el('button', 'chip', l.replace('Domicílio principal do adquirente (matriz)', 'Domicílio (matriz)'));
-      b.type = 'button';
-      b.setAttribute('aria-pressed', String(state.loc === l));
-      b.onclick = () => { state.loc = state.loc === l ? null : l; apply(); renderChips(); renderList(); renderDetail(); };
-      box.appendChild(b);
+      s.appendChild(new Option(l.replace('Domicílio principal do adquirente (matriz)', 'Domicílio (matriz)'), l));
     });
+    s.onchange = () => { state.loc = s.value || null; apply(); renderList(); renderDetail(); };
   }
   function renderGrpSel() {
     const g = $('#gsel');
@@ -208,8 +227,8 @@
 
   function clearFilters() {
     state.q = ''; state.grp = ''; state.loc = null; state.cc = '';
-    $('#q').value = ''; $('#gsel').value = ''; $('#ccsel').value = '';
-    apply(); renderChips(); renderList(); renderDetail();
+    $('#q').value = ''; $('#gsel').value = ''; $('#ccsel').value = ''; $('#locsel').value = '';
+    apply(); renderList(); renderDetail();
     $('#q').focus();
   }
 
@@ -576,7 +595,7 @@
     };
   });
 
-  renderChips(); renderGrpSel(); renderCcSel(); apply(); renderList(); renderDetail();
+  renderLocSel(); renderGrpSel(); renderCcSel(); apply(); renderList(); renderDetail();
   const initialTab = urlInicial.searchParams.get('tab') === 'ref' ? $('#tab-ref') : $('#tab-fluxo');
   activateTab(initialTab, false);
 })();

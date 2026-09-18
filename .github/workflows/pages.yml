@@ -1,7 +1,10 @@
 name: Publicar no GitHub Pages
 
-# Publica a pasta web/ no Pages. Exige, uma única vez,
-# Settings → Pages → Source: "GitHub Actions".
+# Publica a pasta web/ no Pages.
+# O passo configure-pages tenta habilitar o Pages sozinho (enablement: true).
+# Se a conta não permitir — o Pages em repositório privado exige plano pago —
+# ele falha avisando, e aí resta tornar o repositório público ou publicar em
+# outro host estático. Veja a seção "Publicar" do README.
 on:
   push:
     branches: [main]
@@ -28,6 +31,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web

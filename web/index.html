@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-ui-version="2026-09-18.2">
+<html lang="pt-BR" data-ui-version="2026-09-18.3">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -10,14 +10,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="app.css?v=2026-09-18.2">
+<link rel="stylesheet" href="app.css?v=2026-09-18.3">
 </head>
 <body>
 <header class="top">
   <div class="topin">
     <div class="brandrow">
       <h1>Consulta do Anexo VIII</h1>
-      <span class="ver">v1.01.00</span>
+      <span class="version-cluster">
+        <span class="ver">v1.01.00</span>
+        <button type="button" class="version-help" id="open-sources" aria-label="Entender as versões dos Anexos VII e VIII" title="Entender as versões dos Anexos VII e VIII">!</button>
+      </span>
       <span class="sub">Encontre a correlação entre o serviço prestado, o local de incidência e a classificação tributária.</span>
     </div>
     <div class="legend">
@@ -40,13 +43,6 @@
 <div class="wrap">
 
   <section id="p-fluxo" role="tabpanel" aria-labelledby="tab-fluxo">
-    <aside class="version-note" id="version-note" aria-label="Atenção sobre a versão consultada">
-      <div>
-        <strong id="version-warning">Esta correlação usa indOp da versão 1.01.00.</strong>
-        A versão mais recente publicada do Anexo VII é a 1.02.00, vinculada à NT 009/2026. O Anexo VIII ainda não foi reemitido com essa atualização.
-      </div>
-      <button type="button" class="note-link" id="open-sources">Ver fontes e ressalvas</button>
-    </aside>
     <div class="query-toolbar" aria-label="Busca e filtros da consulta">
       <div class="toolbar-head">
         <strong>Localizar serviço</strong>
@@ -130,7 +126,7 @@
           <div><dt>Correlação</dt><dd id="source-anexo">Anexo VIII v1.01.00</dd></div>
           <div><dt>Classificação tributária</dt><dd id="source-cclass">Tabela oficial de CST e cClassTrib</dd></div>
           <div><dt>Status oficial</dt><dd>O portal da NFS-e apresenta o Anexo VIII como um trabalho inicial, ainda em desenvolvimento, e informa que não há regras de negócio baseadas nele no Piloto RTC nem em Produção.</dd></div>
-          <div><dt>Ressalva de versão</dt><dd>O Anexo VIII v1.01.00 usa indOp da v1.01.00. A versão mais recente publicada do Anexo VII é a v1.02.00, vinculada à NT 009/2026, sem reemissão correspondente do Anexo VIII nesta base.</dd></div>
+          <div><dt>Relação entre as versões</dt><dd>Esta consulta reproduz o Anexo VIII v1.01.00, publicado com os códigos indOp do Anexo VII v1.01.00. A NT 009/2026 atualizou o Anexo VII para a v1.02.00. Como o Anexo VIII não foi republicado depois dessa atualização, a consulta preserva a correlação original sem substituir códigos por conta própria.</dd></div>
           <div><dt>Lacunas da origem</dt><dd>Campos ausentes na planilha são preservados e destacados em vermelho. Nenhum código é inferido para preencher lacunas.</dd></div>
         </dl>
         <a class="official-link" href="https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc" target="_blank" rel="noopener noreferrer">Abrir documentação técnica oficial <span aria-hidden="true">↗</span></a>
@@ -142,6 +138,6 @@
 </div>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
-<script src="app.js?v=2026-09-18.2" defer></script>
+<script src="app.js?v=2026-09-18.3" defer></script>
 </body>
 </html>

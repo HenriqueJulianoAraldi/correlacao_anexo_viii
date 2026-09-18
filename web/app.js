@@ -1,7 +1,7 @@
 // Consulta do Anexo VIII — página estática, sem dependências.
 // Os dados vêm de data/anexo8.json, gerado por ../build/gerar.py.
 (async () => {
-  const UI_VERSION = '2026-09-18.2';
+  const UI_VERSION = '2026-09-18.3';
   const documentVersion = document.documentElement.dataset.uiVersion;
 
   // Um HTML antigo em cache pode carregar o JavaScript novo e quebrar a tela.
@@ -503,12 +503,12 @@
   $('.ver').textContent = D.meta.versao;
   $('.sub').textContent = nf(D.meta.subitens) + ' subitens · ' + nf(D.meta.nbs) +
     ' códigos NBS · ' + nf(D.meta.rotas) + ' rotas de correlação.';
-  $('#version-warning').textContent = 'Esta correlação é a versão ' + D.meta.versao + ' e usa indOp da versão 1.01.00.';
   $('#source-anexo').textContent = D.meta.fonte_anexo + ' (' + D.meta.versao + ')';
   $('#source-cclass').textContent = D.meta.fonte_cc;
   $('#foot').textContent =
     'Fonte: ' + D.meta.fonte_anexo + ', a aba REGRA inc. X do mesmo arquivo e ' + D.meta.fonte_cc + '. ' +
-    'Os indOp são os do AnexoVII v1.01.00; a versão mais recente publicada é a v1.02.00 (NT 009/2026). ' +
+    'Esta consulta reproduz o Anexo VIII ' + D.meta.versao + ' e preserva os códigos indOp do Anexo VII v1.01.00 usados na correlação original. ' +
+    'A NT 009/2026 publicou o Anexo VII v1.02.00; não houve nova publicação correspondente do Anexo VIII nesta base. ' +
     'Lacunas da planilha aparecem marcadas em vermelho no fluxo.';
 
   /* ---------- tabelas de apoio ---------- */

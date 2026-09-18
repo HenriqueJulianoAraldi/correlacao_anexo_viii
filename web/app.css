@@ -47,8 +47,12 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;backgroun
 .topin{max-width:1360px;margin:0 auto;padding:13px 16px 0}
 .brandrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px}
 h1{font-size:19px;font-weight:700}
+.version-cluster{display:inline-flex;align-items:center;gap:5px}
 .ver{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;letter-spacing:.04em;
   color:var(--n2);background:var(--n2b);border:1px solid var(--line);border-radius:3px;padding:2px 7px}
+.version-help{display:grid;place-items:center;width:19px;height:19px;padding:0;border:1px solid var(--warn);
+  border-radius:50%;background:var(--warnb);color:var(--warn);font:700 12px/1 Archivo,sans-serif;cursor:pointer}
+.version-help:hover,.version-help:focus-visible{background:var(--warn);color:var(--surface)}
 .sub{color:var(--muted);font-size:12.5px;flex:1 1 240px;min-width:0}
 .legend{display:flex;flex-wrap:wrap;align-items:center;gap:5px 7px;margin-top:10px}
 .legend .t{display:inline-flex;align-items:baseline;gap:6px;background:var(--surface2);
@@ -65,14 +69,6 @@ h1{font-size:19px;font-weight:700}
 .tab:hover{color:var(--ink)}
 .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--n1)}
 main{padding-block:18px 48px}
-
-.version-note{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;
-  padding:10px 13px;border:1px solid var(--warn);border-left:4px solid var(--warn);
-  border-radius:7px;background:var(--warnb);color:var(--ink2);font-size:13px}
-.version-note strong{color:var(--ink);font-weight:600}
-.note-link{flex:0 0 auto;border:0;background:none;padding:4px 2px;color:var(--warn);font-weight:600;
-  font-size:12.5px;text-decoration:underline;cursor:pointer}
-@media (max-width:680px){.version-note{align-items:flex-start;flex-direction:column;gap:5px}}
 
 /* ---------- fluxo ---------- */
 .query-toolbar{margin-bottom:14px;padding:10px 12px 12px;background:var(--surface);border:1px solid var(--line);
@@ -326,7 +322,6 @@ table.data td.num{text-align:right;font-variant-numeric:tabular-nums;white-space
   .wrap{padding-inline:11px}
   .topin{padding-inline:11px}
   main{padding-top:12px}
-  .version-note{padding:10px 11px;font-size:12.5px}
   .navrow{align-items:flex-start}
   .nav-actions{align-items:flex-end;flex-direction:column-reverse;gap:6px}
   .share-btn span:first-child{display:none}

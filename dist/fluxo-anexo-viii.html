@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-ui-version="2026-09-18.2">
+<html lang="pt-BR" data-ui-version="2026-09-18.3">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -60,8 +60,12 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;backgroun
 .topin{max-width:1360px;margin:0 auto;padding:13px 16px 0}
 .brandrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px}
 h1{font-size:19px;font-weight:700}
+.version-cluster{display:inline-flex;align-items:center;gap:5px}
 .ver{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;letter-spacing:.04em;
   color:var(--n2);background:var(--n2b);border:1px solid var(--line);border-radius:3px;padding:2px 7px}
+.version-help{display:grid;place-items:center;width:19px;height:19px;padding:0;border:1px solid var(--warn);
+  border-radius:50%;background:var(--warnb);color:var(--warn);font:700 12px/1 Archivo,sans-serif;cursor:pointer}
+.version-help:hover,.version-help:focus-visible{background:var(--warn);color:var(--surface)}
 .sub{color:var(--muted);font-size:12.5px;flex:1 1 240px;min-width:0}
 .legend{display:flex;flex-wrap:wrap;align-items:center;gap:5px 7px;margin-top:10px}
 .legend .t{display:inline-flex;align-items:baseline;gap:6px;background:var(--surface2);
@@ -78,14 +82,6 @@ h1{font-size:19px;font-weight:700}
 .tab:hover{color:var(--ink)}
 .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--n1)}
 main{padding-block:18px 48px}
-
-.version-note{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;
-  padding:10px 13px;border:1px solid var(--warn);border-left:4px solid var(--warn);
-  border-radius:7px;background:var(--warnb);color:var(--ink2);font-size:13px}
-.version-note strong{color:var(--ink);font-weight:600}
-.note-link{flex:0 0 auto;border:0;background:none;padding:4px 2px;color:var(--warn);font-weight:600;
-  font-size:12.5px;text-decoration:underline;cursor:pointer}
-@media (max-width:680px){.version-note{align-items:flex-start;flex-direction:column;gap:5px}}
 
 /* ---------- fluxo ---------- */
 .query-toolbar{margin-bottom:14px;padding:10px 12px 12px;background:var(--surface);border:1px solid var(--line);
@@ -339,7 +335,6 @@ table.data td.num{text-align:right;font-variant-numeric:tabular-nums;white-space
   .wrap{padding-inline:11px}
   .topin{padding-inline:11px}
   main{padding-top:12px}
-  .version-note{padding:10px 11px;font-size:12.5px}
   .navrow{align-items:flex-start}
   .nav-actions{align-items:flex-end;flex-direction:column-reverse;gap:6px}
   .share-btn span:first-child{display:none}
@@ -358,7 +353,10 @@ table.data td.num{text-align:right;font-variant-numeric:tabular-nums;white-space
   <div class="topin">
     <div class="brandrow">
       <h1>Consulta do Anexo VIII</h1>
-      <span class="ver">v1.01.00</span>
+      <span class="version-cluster">
+        <span class="ver">v1.01.00</span>
+        <button type="button" class="version-help" id="open-sources" aria-label="Entender as versões dos Anexos VII e VIII" title="Entender as versões dos Anexos VII e VIII">!</button>
+      </span>
       <span class="sub">Encontre a correlação entre o serviço prestado, o local de incidência e a classificação tributária.</span>
     </div>
     <div class="legend">
@@ -381,13 +379,6 @@ table.data td.num{text-align:right;font-variant-numeric:tabular-nums;white-space
 <div class="wrap">
 
   <section id="p-fluxo" role="tabpanel" aria-labelledby="tab-fluxo">
-    <aside class="version-note" id="version-note" aria-label="Atenção sobre a versão consultada">
-      <div>
-        <strong id="version-warning">Esta correlação usa indOp da versão 1.01.00.</strong>
-        A versão mais recente publicada do Anexo VII é a 1.02.00, vinculada à NT 009/2026. O Anexo VIII ainda não foi reemitido com essa atualização.
-      </div>
-      <button type="button" class="note-link" id="open-sources">Ver fontes e ressalvas</button>
-    </aside>
     <div class="query-toolbar" aria-label="Busca e filtros da consulta">
       <div class="toolbar-head">
         <strong>Localizar serviço</strong>
@@ -471,7 +462,7 @@ table.data td.num{text-align:right;font-variant-numeric:tabular-nums;white-space
           <div><dt>Correlação</dt><dd id="source-anexo">Anexo VIII v1.01.00</dd></div>
           <div><dt>Classificação tributária</dt><dd id="source-cclass">Tabela oficial de CST e cClassTrib</dd></div>
           <div><dt>Status oficial</dt><dd>O portal da NFS-e apresenta o Anexo VIII como um trabalho inicial, ainda em desenvolvimento, e informa que não há regras de negócio baseadas nele no Piloto RTC nem em Produção.</dd></div>
-          <div><dt>Ressalva de versão</dt><dd>O Anexo VIII v1.01.00 usa indOp da v1.01.00. A versão mais recente publicada do Anexo VII é a v1.02.00, vinculada à NT 009/2026, sem reemissão correspondente do Anexo VIII nesta base.</dd></div>
+          <div><dt>Relação entre as versões</dt><dd>Esta consulta reproduz o Anexo VIII v1.01.00, publicado com os códigos indOp do Anexo VII v1.01.00. A NT 009/2026 atualizou o Anexo VII para a v1.02.00. Como o Anexo VIII não foi republicado depois dessa atualização, a consulta preserva a correlação original sem substituir códigos por conta própria.</dd></div>
           <div><dt>Lacunas da origem</dt><dd>Campos ausentes na planilha são preservados e destacados em vermelho. Nenhum código é inferido para preencher lacunas.</dd></div>
         </dl>
         <a class="official-link" href="https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc" target="_blank" rel="noopener noreferrer">Abrir documentação técnica oficial <span aria-hidden="true">↗</span></a>
@@ -488,7 +479,7 @@ table.data td.num{text-align:right;font-variant-numeric:tabular-nums;white-space
 // Consulta do Anexo VIII — página estática, sem dependências.
 // Os dados vêm de data/anexo8.json, gerado por ../build/gerar.py.
 (async () => {
-  const UI_VERSION = '2026-09-18.2';
+  const UI_VERSION = '2026-09-18.3';
   const documentVersion = document.documentElement.dataset.uiVersion;
 
   // Um HTML antigo em cache pode carregar o JavaScript novo e quebrar a tela.
@@ -990,12 +981,12 @@ table.data td.num{text-align:right;font-variant-numeric:tabular-nums;white-space
   $('.ver').textContent = D.meta.versao;
   $('.sub').textContent = nf(D.meta.subitens) + ' subitens · ' + nf(D.meta.nbs) +
     ' códigos NBS · ' + nf(D.meta.rotas) + ' rotas de correlação.';
-  $('#version-warning').textContent = 'Esta correlação é a versão ' + D.meta.versao + ' e usa indOp da versão 1.01.00.';
   $('#source-anexo').textContent = D.meta.fonte_anexo + ' (' + D.meta.versao + ')';
   $('#source-cclass').textContent = D.meta.fonte_cc;
   $('#foot').textContent =
     'Fonte: ' + D.meta.fonte_anexo + ', a aba REGRA inc. X do mesmo arquivo e ' + D.meta.fonte_cc + '. ' +
-    'Os indOp são os do AnexoVII v1.01.00; a versão mais recente publicada é a v1.02.00 (NT 009/2026). ' +
+    'Esta consulta reproduz o Anexo VIII ' + D.meta.versao + ' e preserva os códigos indOp do Anexo VII v1.01.00 usados na correlação original. ' +
+    'A NT 009/2026 publicou o Anexo VII v1.02.00; não houve nova publicação correspondente do Anexo VIII nesta base. ' +
     'Lacunas da planilha aparecem marcadas em vermelho no fluxo.';
 
   /* ---------- tabelas de apoio ---------- */

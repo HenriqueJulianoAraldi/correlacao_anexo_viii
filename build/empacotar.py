@@ -10,11 +10,16 @@ Uso:
 
 from __future__ import annotations
 
+import re
+import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 WEB = RAIZ / "web"
 SAIDA = RAIZ / "dist" / "fluxo-anexo-viii.html"
+
+TAG_CSS = re.compile(r'<link rel="stylesheet" href="app\.css(?:\?[^\"]*)?">')
+TAG_JS = re.compile(r'<script src="app\.js(?:\?[^\"]*)?" defer></script>')
 
 def main() -> None:
     html = (WEB / "index.html").read_text(encoding="utf-8")
@@ -25,11 +30,12 @@ def main() -> None:
     # O JSON entra dentro de <script>, então qualquer '</' precisa ser escapado.
     dados = dados.replace("</", "<\\/")
 
-    html = html.replace('<link rel="stylesheet" href="app.css">', f"<style>\n{css}</style>")
-    html = html.replace(
-        '<script src="app.js" defer></script>',
-        f"<script>window.__ANEXO8__ = {dados};</script>\n<script>\n{js}</script>",
+    html, css_trocas = TAG_CSS.subn(lambda _: f"<style>\n{css}</style>", html)
+    html, js_trocas = TAG_JS.subn(
+        lambda _: f"<script>window.__ANEXO8__ = {dados};</script>\n<script>\n{js}</script>", html
     )
+    if css_trocas != 1 or js_trocas != 1:
+        sys.exit("index.html mudou: não foi possível localizar os arquivos CSS e JS para empacotar.")
 
     SAIDA.parent.mkdir(parents=True, exist_ok=True)
     SAIDA.write_text(html, encoding="utf-8")

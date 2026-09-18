@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Fluxo do Anexo VIII</title>
-<meta name="description" content="Consulta de correlação do Anexo VIII (IBS/CBS): subitem da LC 116 para NBS, indOp e cClassTrib.">
+<title>Consulta do Anexo VIII — IBS e CBS</title>
+<meta name="description" content="Consulte a correlação do Anexo VIII entre subitem da LC 116, NBS, indOp e cClassTrib do IBS e da CBS.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 rx=%273%27 fill=%27%230F4C5C%27/%3E%3Cpath d=%27M4 4.5h3.2M4 8h3.2M4 11.5h3.2M7.2 4.5c2 0 2 3.5 4.8 3.5M7.2 11.5c2 0 2-3.5 4.8-3.5%27 stroke=%27%23fff%27 stroke-width=%271.2%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,9 +16,9 @@
 <header class="top">
   <div class="topin">
     <div class="brandrow">
-      <h1>Fluxo do Anexo VIII</h1>
+      <h1>Consulta do Anexo VIII</h1>
       <span class="ver">v1.01.00</span>
-      <span class="sub">Consulta de correlação para IBS e CBS — 208 subitens, 731 NBS, 268 rotas.</span>
+      <span class="sub">Encontre a correlação entre o serviço prestado, o local de incidência e a classificação tributária.</span>
     </div>
     <div class="legend">
       <span class="t" style="--lc:var(--n1)"><b>Subitem LC 116</b><i>lista de serviços da LC 116/2003</i></span>
@@ -29,9 +29,9 @@
       <span class="ar">→</span>
       <span class="t" style="--lc:var(--n4)"><b>cClassTrib</b><i>código de classificação tributária do IBS e da CBS</i></span>
     </div>
-    <div class="tabs" role="tablist">
-      <button class="tab" role="tab" aria-selected="true" data-tab="fluxo">Fluxo por subitem</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="ref">Tabelas de apoio</button>
+    <div class="tabs" role="tablist" aria-label="Áreas da consulta">
+      <button class="tab" id="tab-fluxo" role="tab" aria-selected="true" aria-controls="p-fluxo" tabindex="0" data-tab="fluxo">Consultar correlações</button>
+      <button class="tab" id="tab-ref" role="tab" aria-selected="false" aria-controls="p-ref" tabindex="-1" data-tab="ref">Tabelas de apoio e fontes</button>
     </div>
   </div>
 </header>
@@ -39,32 +39,66 @@
 <main>
 <div class="wrap">
 
-  <section id="p-fluxo">
+  <section id="p-fluxo" role="tabpanel" aria-labelledby="tab-fluxo">
+    <aside class="version-note" id="version-note" aria-label="Atenção sobre a versão consultada">
+      <div>
+        <strong id="version-warning">Esta correlação usa indOp da versão 1.01.00.</strong>
+        A versão mais recente publicada do Anexo VII é a 1.02.00, vinculada à NT 009/2026. O Anexo VIII ainda não foi reemitido com essa atualização.
+      </div>
+      <button type="button" class="note-link" id="open-sources">Ver fontes e ressalvas</button>
+    </aside>
     <div class="split">
       <aside class="rail">
         <div class="railtop">
-          <input id="q" class="search" type="search" placeholder="Buscar subitem, NBS, indOp ou cClassTrib…" autocomplete="off">
-          <select id="gsel" class="search sel"></select>
-          <select id="ccsel" class="search sel"></select>
-          <div class="chips" id="locchips"></div>
+          <div class="filter-title">
+            <span>Localizar serviço</span>
+            <button class="clearbtn" id="clr" type="button" hidden>Limpar filtros</button>
+          </div>
+          <label class="sr-only" for="q">Buscar nas correlações</label>
+          <div class="searchbox">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+            <input id="q" class="search" type="search" placeholder="Serviço, NBS, indOp, cClassTrib, CST…" autocomplete="off" aria-describedby="search-help" aria-keyshortcuts="/">
+            <kbd title="Atalho para buscar">/</kbd>
+          </div>
+          <p class="search-help" id="search-help">Use palavras da descrição ou digite o código com ou sem pontuação.</p>
+
+          <div class="filter-grid">
+            <label class="field" for="gsel"><span>Grupo da LC 116</span><select id="gsel" class="search sel"></select></label>
+            <label class="field" for="ccsel"><span>Classificação tributária</span><select id="ccsel" class="search sel"></select></label>
+          </div>
+          <fieldset class="location-filter">
+            <legend>Local de incidência</legend>
+            <div class="chips" id="locchips"></div>
+          </fieldset>
         </div>
-        <div class="count"><span id="cnt"></span><button class="clearbtn" id="clr" hidden>limpar</button></div>
-        <div class="list" id="list" role="listbox" tabindex="0" aria-label="Subitens da LC 116"></div>
+        <div class="count"><span>Resultados</span><strong id="cnt" aria-live="polite"></strong></div>
+        <div class="list" id="list" role="list" tabindex="0" aria-label="Subitens da LC 116"></div>
       </aside>
-      <div class="panel" id="detail"></div>
+      <div class="panel" id="detail" aria-busy="true">
+        <div class="loading"><span></span>Carregando correlações…</div>
+      </div>
     </div>
   </section>
 
-  <section id="p-ref" hidden>
+  <section id="p-ref" role="tabpanel" aria-labelledby="tab-ref" hidden>
+    <div class="ref-intro">
+      <div>
+        <h2>Referências para interpretar a consulta</h2>
+        <p>Use as tabelas abaixo para conferir o significado dos códigos apresentados no fluxo.</p>
+      </div>
+      <label class="ref-search" for="refq"><span>Pesquisar nas tabelas</span><input id="refq" type="search" placeholder="Código, local, tratamento ou artigo…" autocomplete="off"></label>
+    </div>
     <div class="jump">
       <a href="#s-ind">indOp e local de incidência</a>
       <a href="#s-x">Regra do inciso X</a>
       <a href="#s-cc">cClassTrib e CST</a>
+      <a href="#s-fontes">Fontes e ressalvas</a>
     </div>
 
     <div class="sec" id="s-ind">
       <h2>indOp e o local de incidência que cada um determina</h2>
       <p class="cap">Tabela baseada no art. 11 da LC 214/2025. O mesmo indOp sempre aponta para o mesmo local.</p>
+      <p class="table-count" id="ind-count" aria-live="polite"></p>
       <div class="tblwrap"><table class="data" id="indtbl"></table></div>
     </div>
 
@@ -86,13 +120,30 @@
     <div class="sec" id="s-cc">
       <h2>cClassTrib, com o CST e o tratamento de cada um</h2>
       <p class="cap">O CST e o tratamento vêm da tabela oficial de classificação tributária do IBS e da CBS. A NFS-e exige os dois campos juntos.</p>
+      <p class="table-count" id="cc-count" aria-live="polite"></p>
       <div class="tblwrap"><table class="data" id="cctbl"></table></div>
+    </div>
+
+    <div class="sec" id="s-fontes">
+      <h2>Fontes, versão e limites da consulta</h2>
+      <p class="cap">A página reorganiza os arquivos oficiais para facilitar a leitura. Ela não cria correlações nem substitui a validação da legislação aplicável ao caso concreto.</p>
+      <div class="source-card">
+        <dl>
+          <div><dt>Correlação</dt><dd id="source-anexo">Anexo VIII v1.01.00</dd></div>
+          <div><dt>Classificação tributária</dt><dd id="source-cclass">Tabela oficial de CST e cClassTrib</dd></div>
+          <div><dt>Status oficial</dt><dd>O portal da NFS-e apresenta o Anexo VIII como um trabalho inicial, ainda em desenvolvimento, e informa que não há regras de negócio baseadas nele no Piloto RTC nem em Produção.</dd></div>
+          <div><dt>Ressalva de versão</dt><dd>O Anexo VIII v1.01.00 usa indOp da v1.01.00. A versão mais recente publicada do Anexo VII é a v1.02.00, vinculada à NT 009/2026, sem reemissão correspondente do Anexo VIII nesta base.</dd></div>
+          <div><dt>Lacunas da origem</dt><dd>Campos ausentes na planilha são preservados e destacados em vermelho. Nenhum código é inferido para preencher lacunas.</dd></div>
+        </dl>
+        <a class="official-link" href="https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc" target="_blank" rel="noopener noreferrer">Abrir documentação técnica oficial <span aria-hidden="true">↗</span></a>
+      </div>
     </div>
   </section>
 
   <p class="foot" id="foot"></p>
 </div>
 </main>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
 <script src="app.js" defer></script>
 </body>
 </html>

@@ -1,63 +1,130 @@
 // Consulta do Anexo VIII — página estática, sem dependências.
 // Os dados vêm de data/anexo8.json, gerado por ../build/gerar.py.
 (async () => {
-  const resposta = await fetch('data/anexo8.json');
-  if (!resposta.ok) {
-    document.getElementById('detail').textContent = 'Não foi possível carregar data/anexo8.json.';
-    return;
-  }
-  const D = await resposta.json();
-
   const $ = s => document.querySelector(s);
   const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
   const nf = n => n.toLocaleString('pt-BR');
-  const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const compact = s => norm(s).replace(/[^a-z0-9]/g, '');
+  const terms = q => norm(q).trim().split(/\s+/).filter(Boolean);
+  const textMatches = (text, query) => {
+    const value = norm(text), packed = compact(text);
+    return terms(query).some(term => value.includes(term) || (/\d/.test(term) && packed.includes(compact(term))));
+  };
+
+  function showLoadError() {
+    const detail = $('#detail');
+    detail.textContent = '';
+    detail.setAttribute('aria-busy', 'false');
+    const box = el('div', 'load-error');
+    box.appendChild(el('h2', null, 'Não foi possível carregar a consulta'));
+    box.appendChild(el('p', null, 'Verifique sua conexão e tente novamente. Nenhum dado foi alterado.'));
+    const retry = el('button', 'primary-btn', 'Tentar novamente');
+    retry.type = 'button'; retry.onclick = () => window.location.reload();
+    box.appendChild(retry); detail.appendChild(box);
+  }
+
+  let D = window.__ANEXO8__;
+  if (!D) {
+    try {
+      const resposta = await fetch('data/anexo8.json');
+      if (!resposta.ok) throw new Error('Falha ao carregar os dados');
+      D = await resposta.json();
+    } catch (erro) {
+      showLoadError();
+      return;
+    }
+  }
 
   const LOC_ORDER = ['Local da prestação', 'Domicílio principal do adquirente', 'Local do imóvel',
     'Local da entrega ou da disponibilização', 'Local do evento', 'Domicílio principal do adquirente (matriz)', 'Via explorada'];
   const INCX = { '100101': ['100101', '100102', '100201'], '100301': ['100301', '100302', '100401'], '100501': ['100501', '100502', '100601'] };
+  const indopLocal = code => ((D.indop || {})[code] || {}).l || '';
 
   /* ---------- índice ---------- */
   const ITENS = Object.keys(D.rotas).sort();
   const INDEX = ITENS.map(code => {
     const rotas = D.rotas[code], locais = new Set(), inds = new Set(), ccs = new Set();
-    let nbsN = 0, semCod = 0, blob = code + ' ' + (D.itens[code] || '');
+    let nbsN = 0, semCod = 0;
+    const partes = [code, D.itens[code] || ''];
     rotas.forEach(rt => {
       rt.nbs.forEach(n => {
-        if (n.startsWith('§')) { semCod++; blob += ' ' + n.slice(1); }
-        else { nbsN++; blob += ' ' + n + ' ' + (D.nbs[n] || ''); }
+        if (n.startsWith('§')) { semCod++; partes.push('nbs sem codigo', n.slice(1)); }
+        else { nbsN++; partes.push('nbs ' + n, D.nbs[n] || ''); }
       });
       rt.r.forEach(b => {
-        if (b.i) { inds.add(b.i); blob += ' ' + b.i; }
-        if (b.l) locais.add(b.l);
-        b.c.forEach(c => { ccs.add(c); blob += ' ' + c + ' ' + D.cclass[c].n; });
+        const local = indopLocal(b.i);
+        if (b.i) { inds.add(b.i); partes.push('indop ' + b.i); }
+        if (local) { locais.add(local); partes.push(local); }
+        b.c.forEach(c => {
+          ccs.add(c);
+          const cc = D.cclass[c] || {};
+          partes.push('cclasstrib ' + c, cc.n || '', 'cst ' + (cc.cst || ''), cc.dcst || '', 'artigo ' + (cc.art || ''));
+        });
       });
     });
     const grp = code.split('.')[0];
-    blob += ' ' + grp + ' ' + ((D.grupos || {})[grp] || '');
-    return { code, grp, desc: D.itens[code] || '', rotas, locais, inds, ccs, nbsN, semCod, blob: norm(blob) };
+    partes.push('grupo ' + grp, (D.grupos || {})[grp] || '');
+    const blob = norm(partes.join(' '));
+    return { code, grp, desc: D.itens[code] || '', rotas, locais, inds, ccs, nbsN, semCod, blob, packed: compact(blob) };
   });
   const BY = Object.fromEntries(INDEX.map(i => [i.code, i]));
 
   const LS = 'anexo8.sel';
+  const urlInicial = new URL(window.location.href);
+  const itemUrl = urlInicial.searchParams.get('item');
   let stored = null;
   try { stored = localStorage.getItem(LS); } catch (e) { }
-  let state = { q: '', grp: '', loc: null, cc: '', sel: (stored && BY[stored]) ? stored : ITENS[0] };
+  let state = { q: '', grp: '', loc: null, cc: '', sel: (itemUrl && BY[itemUrl]) ? itemUrl : ((stored && BY[stored]) ? stored : ITENS[0]) };
   let view = [];
+
+  function syncUrl(tab) {
+    const url = new URL(window.location.href);
+    if (state.sel) url.searchParams.set('item', state.sel);
+    if ((tab || url.searchParams.get('tab')) === 'ref') url.searchParams.set('tab', 'ref');
+    else url.searchParams.delete('tab');
+    try { history.replaceState(null, '', url.href); } catch (e) { }
+  }
+
+  let toastTimer = null;
+  function toast(message) {
+    const box = $('#toast');
+    clearTimeout(toastTimer); box.textContent = message; box.hidden = false;
+    toastTimer = setTimeout(() => { box.hidden = true; }, 2200);
+  }
+  async function copyText(value, message) {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch (e) {
+      const input = el('textarea'); input.value = value; input.setAttribute('readonly', '');
+      input.style.position = 'fixed'; input.style.opacity = '0'; document.body.appendChild(input);
+      input.select(); document.execCommand('copy'); input.remove();
+    }
+    toast(message);
+  }
+  function copyButton(value, label, full = false) {
+    const b = el('button', full ? 'copy-btn copy-btn-full' : 'copy-btn');
+    b.type = 'button'; b.setAttribute('aria-label', label); b.title = label;
+    b.appendChild(el('span', 'copy-icon', '⧉'));
+    if (full) b.appendChild(el('span', null, 'Copiar código'));
+    b.onclick = e => { e.stopPropagation(); copyText(value, value + ' copiado'); };
+    return b;
+  }
 
   /* ---------- filtros ---------- */
   function apply() {
-    const q = norm(state.q.trim());
+    const queryTerms = terms(state.q);
     view = INDEX.filter(it =>
       (!state.grp || it.grp === state.grp) &&
       (!state.loc || it.locais.has(state.loc)) &&
       (!state.cc || it.ccs.has(state.cc)) &&
-      (!q || it.blob.includes(q)));
+      (!queryTerms.length || queryTerms.every(term => it.blob.includes(term) || (/\d/.test(term) && it.packed.includes(compact(term))))));
     if (view.length && !view.some(it => it.code === state.sel)) select(view[0].code, false);
   }
   function select(code, persist = true) {
     state.sel = code;
     if (persist) { try { localStorage.setItem(LS, code); } catch (e) { } }
+    syncUrl();
   }
 
   /* ---------- rail ---------- */
@@ -73,7 +140,7 @@
   }
   function renderGrpSel() {
     const g = $('#gsel');
-    g.appendChild(new Option('Qualquer lista de serviço', ''));
+    g.appendChild(new Option('Todos os grupos', ''));
     Object.keys(D.grupos).sort().forEach(k => {
       const nome = D.grupos[k];
       g.appendChild(new Option(k + ' · ' + (nome.length > 44 ? nome.slice(0, 43) + '…' : nome) + '  (' + D.grupoN[k] + ')', k));
@@ -82,29 +149,37 @@
   }
   function renderCcSel() {
     const s = $('#ccsel');
-    s.appendChild(new Option('Qualquer cClassTrib', ''));
+    s.appendChild(new Option('Todas as classificações', ''));
     Object.keys(D.cclass).sort().forEach(c => {
       const nome = D.cclass[c].n;
       s.appendChild(new Option(c + ' · ' + (nome.length > 46 ? nome.slice(0, 45) + '…' : nome), c));
     });
     s.onchange = () => { state.cc = s.value; apply(); renderList(); renderDetail(); };
   }
-  function mark(txt, q) {
-    if (!q) return el('span', 'd', txt);
-    const i = norm(txt).indexOf(q);
+  function mark(txt, query) {
+    if (!query) return el('span', 'd', txt);
+    const normalized = norm(txt);
+    const hit = terms(query).sort((a, b) => b.length - a.length).find(term => normalized.includes(term));
+    if (!hit) return el('span', 'd', txt);
+    const i = normalized.indexOf(hit);
     if (i < 0) return el('span', 'd', txt);
     const sp = el('span', 'd');
-    sp.append(txt.slice(0, i), el('mark', null, txt.slice(i, i + q.length)), txt.slice(i + q.length));
+    sp.append(txt.slice(0, i), el('mark', null, txt.slice(i, i + hit.length)), txt.slice(i + hit.length));
     return sp;
   }
   function renderList() {
-    const list = $('#list'), q = norm(state.q.trim());
+    const list = $('#list'), query = state.q.trim();
     $('#cnt').textContent = view.length === ITENS.length
-      ? nf(ITENS.length) + ' subitens' : nf(view.length) + ' de ' + nf(ITENS.length) + ' subitens';
+      ? nf(ITENS.length) + ' subitens' : nf(view.length) + ' de ' + nf(ITENS.length);
     $('#clr').hidden = !(state.q || state.grp || state.loc || state.cc);
     list.textContent = '';
     if (!view.length) {
-      list.appendChild(el('p', 'empty', 'Nada encontrado. Tente um código NBS, um indOp, um cClassTrib ou uma palavra da descrição.'));
+      const empty = el('div', 'empty');
+      empty.appendChild(el('strong', null, 'Nenhum subitem encontrado'));
+      empty.appendChild(el('span', null, 'Revise os termos pesquisados ou remova algum filtro.'));
+      const reset = el('button', 'secondary-btn', 'Limpar busca e filtros');
+      reset.type = 'button'; reset.onclick = clearFilters;
+      empty.appendChild(reset); list.appendChild(empty);
       return;
     }
     const frag = document.createDocumentFragment();
@@ -112,10 +187,13 @@
       const b = el('button', 'li'); b.type = 'button'; b.dataset.code = it.code;
       b.setAttribute('aria-current', String(it.code === state.sel));
       b.appendChild(el('span', 'c', it.code));
-      b.appendChild(mark(it.desc, q));
+      b.appendChild(mark(it.desc, query));
       const n = it.nbsN + (it.semCod ? ' + ' + it.semCod + ' s/ código' : '');
       b.appendChild(el('span', 'm', n + ' NBS · ' + it.rotas.length + (it.rotas.length > 1 ? ' rotas' : ' rota')));
-      b.onclick = () => { select(it.code); renderList(); renderDetail(); };
+      b.onclick = () => {
+        select(it.code); renderList(); renderDetail();
+        if (window.matchMedia('(max-width: 920px)').matches) $('#detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
       frag.appendChild(b);
     });
     list.appendChild(frag);
@@ -128,11 +206,18 @@
     if (j !== i && view[j]) { select(view[j].code); renderList(); renderDetail(); }
   }
 
+  function clearFilters() {
+    state.q = ''; state.grp = ''; state.loc = null; state.cc = '';
+    $('#q').value = ''; $('#gsel').value = ''; $('#ccsel').value = '';
+    apply(); renderChips(); renderList(); renderDetail();
+    $('#q').focus();
+  }
+
   /* ---------- flowchart ---------- */
-  function nbsBox(nbs, q) {
+  function nbsBox(nbs, query) {
     const box = el('div', 'nbsbox'), LIM = 6;
-    const hit = c => q && (norm(c).includes(q) || norm(D.nbs[c] || c.slice(1)).includes(q));
-    const ordered = q ? [...nbs].sort((a, b) => (hit(b) ? 1 : 0) - (hit(a) ? 1 : 0)) : nbs;
+    const hit = c => query && (textMatches(c, query) || textMatches(D.nbs[c] || c.slice(1), query));
+    const ordered = query ? [...nbs].sort((a, b) => (hit(b) ? 1 : 0) - (hit(a) ? 1 : 0)) : nbs;
     if (ordered.some(hit)) box.classList.add('hit');
     const draw = upTo => {
       box.textContent = '';
@@ -142,10 +227,12 @@
         if (code.startsWith('§')) {
           r.classList.add('nocode');
           r.appendChild(el('span', 'c', 'sem código'));
-          r.appendChild(mark(code.slice(1), q));
+          r.appendChild(mark(code.slice(1), query));
         } else {
-          r.appendChild(el('span', 'c', code));
-          r.appendChild(mark(D.nbs[code] || '', q));
+          const codeWrap = el('span', 'code-with-copy');
+          codeWrap.append(el('span', 'c', code), copyButton(code, 'Copiar NBS ' + code));
+          r.appendChild(codeWrap);
+          r.appendChild(mark(D.nbs[code] || '', query));
         }
         box.appendChild(r);
       });
@@ -160,16 +247,20 @@
     draw(LIM);
     return box;
   }
-  function branchNode(b, q) {
+  function branchNode(b, query) {
     if (!b.i) {
       const g = el('div', 'gap');
       g.innerHTML = '<b>Sem indOp, sem local de incidência e sem cClassTrib.</b> É a única linha do anexo sem nenhuma correlação — linha 1348 da planilha.';
+      g.prepend(el('div', 'mobile-stage-label lbl3', 'indOp · onde incide'));
       return g;
     }
     const n = el('div', 'node');
-    if (q && norm(b.i).includes(q)) n.classList.add('hit');
-    n.appendChild(el('div', 'c', b.i));
-    n.appendChild(el('div', 'l', b.l || '—'));
+    if (query && textMatches(b.i, query)) n.classList.add('hit');
+    n.appendChild(el('div', 'mobile-stage-label lbl3', 'indOp · onde incide'));
+    const codeWrap = el('div', 'code-with-copy');
+    codeWrap.append(el('span', 'c', b.i), copyButton(b.i, 'Copiar indOp ' + b.i));
+    n.appendChild(codeWrap);
+    n.appendChild(el('div', 'l', indopLocal(b.i) || 'Local não informado'));
     if (INCX[b.i]) {
       const cond = el('div', 'cond');
       cond.innerHTML = 'Vale para <b>prestação onerosa</b> com <b>adquirente no país</b>.';
@@ -251,20 +342,37 @@
   syncHeader();
 
   function renderDetail() {
-    const it = BY[state.sel] || INDEX[0], d = $('#detail'), q = norm(state.q.trim());
+    const d = $('#detail'), query = state.q.trim();
     d.textContent = '';
+    d.setAttribute('aria-busy', 'false');
+    if (!view.length) {
+      const empty = el('div', 'detail-empty');
+      empty.appendChild(el('div', 'empty-icon', '⌕'));
+      empty.appendChild(el('h2', null, 'Não há correlação para exibir'));
+      empty.appendChild(el('p', null, 'Ajuste a busca ou os filtros para encontrar um subitem da LC 116.'));
+      const reset = el('button', 'primary-btn', 'Limpar busca e filtros');
+      reset.type = 'button'; reset.onclick = clearFilters;
+      empty.appendChild(reset); d.appendChild(empty);
+      return;
+    }
+    const it = BY[state.sel] || view[0];
 
     const head = el('div', 'itemhead');
     const nav = el('div', 'navrow');
     const pos = view.findIndex(x => x.code === it.code);
     nav.appendChild(el('span', 'pos', pos >= 0 ? 'Subitem ' + (pos + 1) + ' de ' + nf(view.length) : 'Subitem'));
+    const navActions = el('div', 'nav-actions');
+    const share = el('button', 'share-btn'); share.type = 'button';
+    share.append(el('span', null, 'Compartilhar consulta'), el('span', 'share-icon', '↗'));
+    share.onclick = () => { syncUrl(); copyText(window.location.href, 'Link da consulta copiado'); };
+    navActions.appendChild(share);
     const nb = el('div', 'nav');
     [['‹', -1, 'Subitem anterior'], ['›', 1, 'Próximo subitem']].forEach(([g, dl, lab]) => {
       const b = el('button', null, g); b.type = 'button'; b.title = lab; b.setAttribute('aria-label', lab);
       b.disabled = pos < 0 || (dl < 0 ? pos === 0 : pos === view.length - 1);
       b.onclick = () => step(dl); nb.appendChild(b);
     });
-    nav.appendChild(nb); head.appendChild(nav);
+    navActions.appendChild(nb); nav.appendChild(navActions); head.appendChild(nav);
 
     const g = (D.grupos || {})[it.grp];
     if (g) {
@@ -275,7 +383,9 @@
     }
     const k = el('div', 'k');
     k.appendChild(el('span', 'lbl', 'Subitem LC 116'));
-    k.appendChild(el('span', 'code', it.code));
+    const mainCode = el('span', 'main-code');
+    mainCode.append(el('span', 'code', it.code), copyButton(it.code, 'Copiar subitem ' + it.code, true));
+    k.appendChild(mainCode);
     head.appendChild(k);
     head.appendChild(el('p', null, it.desc));
 
@@ -307,7 +417,7 @@
       const flow = el('div', 'flow');
       const s2 = el('div', 'stage');
       s2.appendChild(el('div', 'stagelbl lbl2', 'NBS · o que foi fornecido'));
-      s2.appendChild(nbsBox(rt.nbs, q));
+      s2.appendChild(nbsBox(rt.nbs, query));
       flow.appendChild(s2);
 
       const right = el('div', 'stage');
@@ -320,14 +430,17 @@
       const br = el('div', 'branches');
       rt.r.forEach(b => {
         const row = el('div', 'branch'), g = el('div', 'bgrid');
-        g.appendChild(branchNode(b, q));
+        g.appendChild(branchNode(b, query));
         if (b.c.length) {
           const cl = el('div', 'ccs');
+          cl.appendChild(el('div', 'mobile-stage-label lbl4', 'cClassTrib · como tributa'));
           b.c.forEach(c => {
-            const o = D.cclass[c], n = el('div', 'cc');
-            if (q && (norm(c).includes(q) || norm(o.n).includes(q))) n.classList.add('hit');
+            const o = D.cclass[c] || {}, n = el('div', 'cc');
+            if (query && (textMatches(c, query) || textMatches(o.n, query) || textMatches(o.cst, query) || textMatches(o.art, query))) n.classList.add('hit');
             if (o.div) n.classList.add('diverge');
-            n.appendChild(el('span', 'c', c));
+            const codeWrap = el('span', 'code-with-copy');
+            codeWrap.append(el('span', 'c', c), copyButton(c, 'Copiar cClassTrib ' + c));
+            n.appendChild(codeWrap);
             n.appendChild(el('span', 'd', o.n));
             const meta = el('div', 'meta');
             if (o.cst) meta.appendChild(el('span', 'tag cst', 'CST ' + o.cst));
@@ -352,29 +465,53 @@
 
   /* ---------- eventos ---------- */
   $('#q').addEventListener('input', e => { state.q = e.target.value; apply(); renderList(); renderDetail(); });
-  $('#clr').onclick = () => {
-    state.q = ''; state.grp = ''; state.loc = null; state.cc = '';
-    $('#q').value = ''; $('#gsel').value = ''; $('#ccsel').value = '';
-    apply(); renderChips(); renderList(); renderDetail();
-  };
+  $('#clr').onclick = clearFilters;
   $('#list').addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') { e.preventDefault(); step(1); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); step(-1); }
   });
   $('#q').addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') { e.preventDefault(); $('#list').focus(); step(1); }
+    else if (e.key === 'Escape' && (state.q || state.grp || state.loc || state.cc)) { e.preventDefault(); clearFilters(); }
+  });
+  document.addEventListener('keydown', e => {
+    const editing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement && document.activeElement.tagName);
+    if (e.key === '/' && !editing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault(); $('#q').focus();
+    }
   });
 
   $('.ver').textContent = D.meta.versao;
-  $('.sub').textContent = 'Consulta de correlação para IBS e CBS — ' + nf(D.meta.subitens) +
-    ' subitens, ' + nf(D.meta.nbs) + ' NBS, ' + nf(D.meta.rotas) + ' rotas.';
+  $('.sub').textContent = nf(D.meta.subitens) + ' subitens · ' + nf(D.meta.nbs) +
+    ' códigos NBS · ' + nf(D.meta.rotas) + ' rotas de correlação.';
+  $('#version-warning').textContent = 'Esta correlação é a versão ' + D.meta.versao + ' e usa indOp da versão 1.01.00.';
+  $('#source-anexo').textContent = D.meta.fonte_anexo + ' (' + D.meta.versao + ')';
+  $('#source-cclass').textContent = D.meta.fonte_cc;
   $('#foot').textContent =
     'Fonte: ' + D.meta.fonte_anexo + ', a aba REGRA inc. X do mesmo arquivo e ' + D.meta.fonte_cc + '. ' +
-    'Os indOp são os do AnexoVII v1.01.00; a versão vigente é a v1.02.00 (NT 009/2026). ' +
+    'Os indOp são os do AnexoVII v1.01.00; a versão mais recente publicada é a v1.02.00 (NT 009/2026). ' +
     'Lacunas da planilha aparecem marcadas em vermelho no fluxo.';
 
   /* ---------- tabelas de apoio ---------- */
   let refDone = false;
+  function filterRef() {
+    if (!refDone) return;
+    const query = $('#refq').value.trim();
+    const filterTable = (table, count, noun) => {
+      const rows = [...table.querySelectorAll('tbody tr')];
+      let visible = 0;
+      rows.forEach(row => {
+        const show = !query || terms(query).every(term => {
+          const packedTerm = compact(term);
+          return row.dataset.search.includes(term) || (packedTerm && row.dataset.packed.includes(packedTerm));
+        });
+        row.hidden = !show; if (show) visible++;
+      });
+      count.textContent = query ? visible + ' de ' + rows.length + ' ' + noun : rows.length + ' ' + noun;
+    };
+    filterTable($('#indtbl'), $('#ind-count'), 'códigos');
+    filterTable($('#cctbl'), $('#cc-count'), 'classificações');
+  }
   function renderRef() {
     if (refDone) return; refDone = true;
 
@@ -384,6 +521,7 @@
     Object.keys(D.indop).sort().forEach(code => {
       const tr = el('tr');
       tr.append(el('td', 'k3', code), el('td', null, D.indop[code].l));
+      tr.dataset.search = norm(tr.textContent); tr.dataset.packed = compact(tr.textContent);
       ib.appendChild(tr);
     });
     it.appendChild(ib);
@@ -395,20 +533,41 @@
       const o = D.cclass[code], tr = el('tr');
       tr.append(el('td', 'k', code), el('td', 'k2', o.cst || '—'), el('td', null, o.dcst || '—'),
                 el('td', null, o.n), el('td', 'k2', o.art || '—'));
+      tr.dataset.search = norm(tr.textContent); tr.dataset.packed = compact(tr.textContent);
       tb.appendChild(tr);
     });
     t.appendChild(tb);
+    filterRef();
   }
+  $('#refq').addEventListener('input', filterRef);
 
-  document.querySelectorAll('.tab').forEach(t => {
-    t.onclick = () => {
-      document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', String(x === t)));
+  function activateTab(t, scroll = true) {
+      document.querySelectorAll('.tab').forEach(x => {
+        x.setAttribute('aria-selected', String(x === t));
+        x.tabIndex = x === t ? 0 : -1;
+      });
       $('#p-fluxo').hidden = t.dataset.tab !== 'fluxo';
       $('#p-ref').hidden = t.dataset.tab !== 'ref';
       if (t.dataset.tab === 'ref') renderRef(); else wireUp();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      syncUrl(t.dataset.tab);
+      if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  const tabs = [...document.querySelectorAll('.tab')];
+  tabs.forEach((t, index) => {
+    t.onclick = () => activateTab(t);
+    t.onkeydown = e => {
+      let next = null;
+      if (e.key === 'ArrowRight') next = tabs[(index + 1) % tabs.length];
+      else if (e.key === 'ArrowLeft') next = tabs[(index - 1 + tabs.length) % tabs.length];
+      else if (e.key === 'Home') next = tabs[0];
+      else if (e.key === 'End') next = tabs[tabs.length - 1];
+      if (next) { e.preventDefault(); activateTab(next); next.focus(); }
     };
   });
+  $('#open-sources').onclick = () => {
+    const refTab = $('#tab-ref'); activateTab(refTab, false);
+    requestAnimationFrame(() => $('#s-fontes').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
   document.querySelectorAll('.jump a').forEach(a => {
     a.onclick = e => {
       e.preventDefault();
@@ -418,4 +577,6 @@
   });
 
   renderChips(); renderGrpSel(); renderCcSel(); apply(); renderList(); renderDetail();
+  const initialTab = urlInicial.searchParams.get('tab') === 'ref' ? $('#tab-ref') : $('#tab-fluxo');
+  activateTab(initialTab, false);
 })();

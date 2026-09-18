@@ -1,6 +1,27 @@
 // Consulta do Anexo VIII — página estática, sem dependências.
 // Os dados vêm de data/anexo8.json, gerado por ../build/gerar.py.
 (async () => {
+  const UI_VERSION = '2026-09-18.2';
+  const documentVersion = document.documentElement.dataset.uiVersion;
+
+  // Um HTML antigo em cache pode carregar o JavaScript novo e quebrar a tela.
+  // Nesse caso, força apenas uma recarga do documento com uma chave de versão.
+  if (documentVersion !== UI_VERSION) {
+    const freshUrl = new URL(window.location.href);
+    if (freshUrl.searchParams.get('_ui') !== UI_VERSION) {
+      freshUrl.searchParams.set('_ui', UI_VERSION);
+      window.location.replace(freshUrl.href);
+    }
+    return;
+  }
+
+  // Remove a chave técnica depois que a versão correta já foi carregada.
+  const loadedUrl = new URL(window.location.href);
+  if (loadedUrl.searchParams.get('_ui') === UI_VERSION) {
+    loadedUrl.searchParams.delete('_ui');
+    try { history.replaceState(null, '', loadedUrl.href); } catch (e) { }
+  }
+
   const $ = s => document.querySelector(s);
   const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
   const nf = n => n.toLocaleString('pt-BR');
